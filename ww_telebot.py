@@ -75,7 +75,7 @@ def telegram_bot_loop():
                 params={"timeout": 100, "offset": offset},
                 timeout=110
             )
-            pritn(response)
+            print(response)
 
             if response.status_code != 200:
                 time.sleep(5)
