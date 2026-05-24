@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 # 1. Telegram Bot Configuration
 TOKEN = os.getenv("BOT_TOKEN", "8140465766:AAFcZkbv2uii6m0LVudr55cRHb0eG13t870")
-URL = f"https://api.telegram.org/bot{TOKEN}/"
+URL = f"https://api.telegram.org/{TOKEN}/"
 
 STATION_MAP = {
     "Moulali": 10001, "Sivaramapalle": 10002, "Medchal Industrial area sub-station": 10003,
