@@ -67,6 +67,7 @@ def telegram_bot_loop():
     offset = 0
     print("Telegram bot poller thread started...")
     
+    # EVERYTHING BELOW IS NOW INSIDE THE FUNCTION DEFINITION
     while True:
         try:
             response = requests.get(
@@ -91,7 +92,6 @@ def telegram_bot_loop():
                 continue
             
             if "result" not in data:
-                print("No 'result' in response")
                 time.sleep(5)
                 continue
 
@@ -106,12 +106,11 @@ def telegram_bot_loop():
                 text = message.get("text", "").strip()
                 text_lower = text.lower()
 
-                # LOGS INCOMING REQUEST IN TERMINAL
+                # LOGS INCOMING REQUEST IN RENDER TERMINAL
                 print(f"📥 RECEIVED MESSAGE from @{user} (ID: {chat_id}): '{text}'")
 
                 # Auto reply logic
                 if text_lower in ["w", "weather update"]:
-                    print("Getting default weather data for Bornapalli")
                     reply = get_weather_data()
                 elif text_lower == "list":
                     locations_list = "\n".join([f"• {loc}" for loc in sorted(STATION_MAP.keys())[:20]])
@@ -119,7 +118,7 @@ def telegram_bot_loop():
                 else:
                     reply = get_weather_by_location(text)
 
-                # LOGS OUTGOING REPLY IN TERMINAL
+                # LOGS OUTGOING REPLY IN RENDER TERMINAL
                 print(f"📤 SENDING REPLY to (ID: {chat_id}): {reply.splitlines()[0]}")
 
                 # Send reply
@@ -146,10 +145,10 @@ def home():
     return "Warangal Weather Bot is Running Natively!"
 
 if __name__ == "__main__":
-    # This now safely spins up the corrected loop on a separate background thread
+    # Spins up the fixed loop inside a background thread so it doesn't block Flask
     bot_thread = threading.Thread(target=telegram_bot_loop, daemon=True)
     bot_thread.start()
     
-    # Flask runs on the main thread and properly binds to Render's port
+    # Flask runs on the main thread and opens up the required port for Render
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
