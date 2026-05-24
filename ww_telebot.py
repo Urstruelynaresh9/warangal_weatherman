@@ -68,6 +68,7 @@ def telegram_bot_loop():
     print("Telegram bot poller thread started...")
     
     while True:
+        print"looooooop running........")
         try:
             response = requests.get(
                 URL + "getUpdates",
