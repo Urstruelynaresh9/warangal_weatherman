@@ -3,10 +3,10 @@ import requests
 import time
 from bs4 import BeautifulSoup
 
+import os
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
 
 chrome_options = Options()
 chrome_options.add_argument("--headless=new")
@@ -14,9 +14,16 @@ chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
 chrome_options.add_argument("--disable-gpu")
 
-# WebDriver Manager automatically matches the installed Chrome version
-service = Service(ChromeDriverManager().install())
-driver = webdriver.Chrome(service=service, options=chrome_options)
+# Check if running in production on Render
+if os.environ.get("RENDER"):
+    # Point directly to the custom binaries we downloaded in our shell script
+    chrome_options.binary_location = os.path.join(os.getcwd(), "bin", "google-chrome")
+    service = Service(executable_path=os.path.join(os.getcwd(), "bin", "chromedriver"))
+    driver = webdriver.Chrome(service=service, options=chrome_options)
+else:
+    # Your local machine configuration (uses your local Chrome automatically)
+    driver = webdriver.Chrome(options=chrome_options)
+    
 TOKEN = os.getenv("BOT_TOKEN")
 
 bot = telebot.TeleBot(TOKEN)
