@@ -1,18 +1,108 @@
 import os
 import time
-import threading
 import requests
-from flask import Flask
+from datetime import datetime, timedelta
 
 # 1. Telegram Bot Configuration
 TOKEN = os.getenv("BOT_TOKEN", "8140465766:AAFcZkbv2uii6m0LVudr55cRHb0eG13t870")
 URL = f"https://api.telegram.org/bot{TOKEN}/"
 
+def get_coordinates(village_name):
+    """
+    Get coordinates using OpenStreetMap Nominatim API
+    Hardcoded to search in Telangana, India for better results
+    """
+    try:
+        # Hardcoded Telangana + India to prioritize local results
+        search_query = f"{village_name}, Telangana, India"
+        
+        url = "https://nominatim.openstreetmap.org/search"
+        params = {
+            "q": search_query,
+            "format": "json",
+            "limit": 1
+        }
+        headers = {
+            "User-Agent": "warangal-weatherman-bot"
+        }
+        
+        response = requests.get(url, params=params, headers=headers, timeout=10)
+        data = response.json()
+        
+        if not data:
+            print(f"❌ Location '{village_name}' not found in Telangana.")
+            return None, None, None
+        
+        place = data[0]
+        latitude = float(place["lat"])
+        longitude = float(place["lon"])
+        display_name = place["display_name"]
+        
+        print(f"✅ Location found: {display_name}")
+        return latitude, longitude, display_name
+    except Exception as e:
+        print(f"⚠️ Error getting coordinates: {str(e)}")
+        return None, None, None
+
+def get_weather(latitude, longitude, location):
+    """Fetch live weather data using Open-Meteo API"""
+    try:
+        weather_url = "https://api.open-meteo.com/v1/forecast"
+        params = {
+            "latitude": latitude,
+            "longitude": longitude,
+            "current_weather": True
+        }
+        
+        response = requests.get(weather_url, params=params, timeout=10)
+        data = response.json()
+        
+        current = data["current_weather"]
+        temperature = current["temperature"]
+        windspeed = current["windspeed"]
+        weather_time = current["time"]
+        
+        # Convert UTC time to IST (GMT+5:30)
+        utc_time = datetime.strptime(weather_time, "%Y-%m-%dT%H:%M")
+        ist_time = utc_time + timedelta(hours=5, minutes=30)
+        formatted_time = ist_time.strftime("%Y-%m-%d %I:%M %p IST")
+        
+        print(f"✅ Weather data retrieved for {location}: {temperature}°C")
+        
+        weather_text = f"""============================
+WARANGAL WEATHERMAN BOT
+============================
+Weather Update for {location}
+━━━━━━━━━━━━━━━━━━━━━━
+⏰ Time: {formatted_time}
+🌡️ Temperature: {temperature}°C
+💨 Wind Speed: {windspeed} km/h
+━━━━━━━━━━━━━━━━━━━━━━"""
+
+        return weather_text
+    except Exception as e:
+        print(f"⚠️ Error fetching weather: {str(e)}")
+        return f"⚠️ Error fetching weather: {str(e)}"
+
 def telegram_bot_loop():
-    """Main long-polling loop tracking user messages"""
+    """Main long-polling loop for Telegram bot"""
     offset = 0
-    print("Telegram bot poller thread started...")
+    print("\n" + "="*60)
+    print("⛅ WARANGAL WEATHERMAN BOT ⛅")
+    print("="*60)
+    print("🤖 Warangal Weather Bot starting...")
+    print(f"📡 Using long polling to listen for messages")
+    print(f"🔗 Bot token: {TOKEN[:20]}...")
+    print("✅ Bot is ready to receive messages!\n")
     
+    # Delete any existing webhook to avoid 409 Conflict
+    try:
+        webhook_response = requests.get(URL + "deleteWebhook", timeout=10)
+        if webhook_response.status_code == 200:
+            print("✓ Webhook deleted successfully\n")
+    except Exception as e:
+        print(f"⚠️ Could not delete webhook: {e}\n")
+
     while True:
         try:
             response = requests.get(
@@ -25,43 +115,56 @@ def telegram_bot_loop():
             )
 
             if response.status_code != 200:
-                print(f"API Error: {response.status_code}")
+                print(f"❌ API Error: {response.status_code}")
                 time.sleep(5)
                 continue
 
             data = response.json()
             
             if not data.get("ok", False):
-                print(f"API Error: {data.get('description', 'Unknown error')}")
+                print(f"❌ API Error: {data.get('description', 'Unknown error')}")
                 time.sleep(5)
                 continue
             
             if "result" not in data:
-                time.sleep(5)
+                time.sleep(1)
                 continue
 
             for update in data["result"]:
                 offset = update["update_id"] + 1
                 message = update.get("message")
+
                 if not message:
                     continue
 
                 chat_id = message["chat"]["id"]
-                user = message.get("from", {}).get("username", "Unknown User")
                 text = message.get("text", "").strip()
                 text_lower = text.lower()
 
-                # LOGS INCOMING REQUEST IN RENDER TERMINAL
-                print(f"📥 RECEIVED MESSAGE from @{user} (ID: {chat_id}): '{text}'")
+                # Extract user details
+                user_info = message.get("from", {})
+                username = user_info.get("username", "Unknown User")
+                first_name = user_info.get("first_name", "User")
 
-                # Minimal Auto reply logic
-                if text_lower == "hi":
-                    reply = "Hello"
+                print("\n" + "="*60)
+                print(f"📥 NEW MESSAGE from @{username} ({first_name})")
+                print(f"💬 Message: '{text}'")
+                print("="*60)
+
+                # Process village name
+                if text.strip():
+                    print(f"🔍 Searching weather for: {text}")
+                    latitude, longitude, location = get_coordinates(text)
                     
-                    # LOGS OUTGOING REPLY IN RENDER TERMINAL
-                    print(f"📤 SENDING REPLY to (ID: {chat_id}): {reply}")
+                    if latitude and longitude:
+                        reply = get_weather(latitude, longitude, location)
+                    else:
+                        reply = f"❌ Could not find location: '{text}'. Please try another village/city name."
+                else:
+                    reply = f"❌ Please send a village or city name to get weather information."
 
-                    # Send reply
+                # Send reply to Telegram
+                try:
                     requests.get(
                         URL + "sendMessage",
                         params={
@@ -69,26 +172,15 @@ def telegram_bot_loop():
                             "text": reply
                         }
                     )
+                    print(f"✅ Reply sent!\n")
+                except Exception as e:
+                    print(f"❌ Error sending reply: {e}\n")
+
+            time.sleep(1)
 
         except Exception as e:
-            print(f"⚠️ Loop error: {e}")
+            print(f"⚠️ Error in polling loop: {e}")
             time.sleep(5)
-            
-        time.sleep(1)
-
-
-# 2. Flask Web Infrastructure (Keeps Render web service alive)
-app = Flask(__name__)
-
-@app.route("/")
-def home():
-    return "Telegram Bot is Running Natively!"
 
 if __name__ == "__main__":
-    # Spins up the fixed loop inside a background thread so it doesn't block Flask
-    bot_thread = threading.Thread(target=telegram_bot_loop, daemon=True)
-    bot_thread.start()
-    
-    # Flask runs on the main thread and opens up the required port for Render
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+    telegram_bot_loop()
