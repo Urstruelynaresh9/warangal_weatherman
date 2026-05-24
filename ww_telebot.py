@@ -77,17 +77,20 @@ def telegram_bot_loop():
 
             if response.status_code != 200:
                 time.sleep(5)
+                print("status_code != 200:")
                 continue
 
             data = response.json()
             if not data.get("ok", False) or "result" not in data:
                 time.sleep(5)
+                print("f not data.get(ok, False) or result not in data:")
                 continue
 
             for update in data["result"]:
                 offset = update["update_id"] + 1
                 message = update.get("message")
                 if not message:
+                    print("if not message:")
                     continue
 
                 chat_id = message["chat"]["id"]
@@ -111,7 +114,7 @@ def telegram_bot_loop():
 
                 # Send response back to user
                 requests.get(URL + "sendMessage", params={"chat_id": chat_id, "text": reply})
-
+                print("Loop.............")
         except Exception as e:
             print(f"⚠️ Loop error: {e}")
             time.sleep(5)
