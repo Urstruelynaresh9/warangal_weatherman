@@ -91,8 +91,12 @@ def telegram_bot_loop():
                     continue
 
                 chat_id = message["chat"]["id"]
+                user = message.get("from", {}).get("username", "Unknown User")
                 text = message.get("text", "").strip()
                 text_lower = text.lower()
+
+                # LOG INCOMING REQUEST
+                print(f"📥 RECEIVED MESSAGE from @{user} (ID: {chat_id}): '{text}'")
 
                 if text_lower in ["w", "weather update"]:
                     reply = get_weather_data()
@@ -102,11 +106,14 @@ def telegram_bot_loop():
                 else:
                     reply = get_weather_by_location(text)
 
+                # LOG OUTGOING REPLY
+                print(f"📤 SENDING REPLY to (ID: {chat_id}): {reply.splitlines()[0]}")
+
                 # Send response back to user
                 requests.get(URL + "sendMessage", params={"chat_id": chat_id, "text": reply})
 
         except Exception as e:
-            print(f"Loop error: {e}")
+            print(f"⚠️ Loop error: {e}")
             time.sleep(5)
         time.sleep(1)
 
@@ -118,10 +125,8 @@ def home():
     return "Warangal Weather Bot is Running Natively!"
 
 if __name__ == "__main__":
-    # Start the custom Telegram long-polling process on a background thread
     bot_thread = threading.Thread(target=telegram_bot_loop, daemon=True)
     bot_thread.start()
     
-    # Run Flask application on foreground to satisfy Render port check assignment
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
