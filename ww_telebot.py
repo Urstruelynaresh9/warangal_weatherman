@@ -18,8 +18,13 @@ driver = webdriver.Chrome(
     service=Service(ChromeDriverManager().install()),
     options=chrome_options
 )
+
+TOKEN = os.getenv("BOT_TOKEN")
+
+bot = telebot.TeleBot(TOKEN)
+
 # Replace with your NEW bot token
-BOT_TOKEN = "bot8140465766:AAFcZkbv2uii6m0LVudr55cRHb0eG13t870"
+TOKEN = "bot8140465766:AAFcZkbv2uii6m0LVudr55cRHb0eG13t870"
 
 URL = f"https://api.telegram.org/{TOKEN}/"
 
