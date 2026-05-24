@@ -19,7 +19,7 @@ driver = webdriver.Chrome(
     options=chrome_options
 )
 # Replace with your NEW bot token
-TOKEN = "bot8140465766:AAFcZkbv2uii6m0LVudr55cRHb0eG13t870"
+BOT_TOKEN = "bot8140465766:AAFcZkbv2uii6m0LVudr55cRHb0eG13t870"
 
 URL = f"https://api.telegram.org/{TOKEN}/"
 
