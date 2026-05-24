@@ -68,13 +68,13 @@ def telegram_bot_loop():
     print("Telegram bot poller thread started...")
     
     while True:
+        print"looooooop running........")
         try:
             response = requests.get(
                 URL + "getUpdates",
                 params={"timeout": 100, "offset": offset},
                 timeout=110
             )
-            print"looooooop running........")
             pritn(response)
 
             if response.status_code != 200:
