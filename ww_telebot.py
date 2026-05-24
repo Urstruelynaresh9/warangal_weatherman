@@ -14,8 +14,15 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # 1. Telegram Bot Configuration
-TOKEN = os.getenv("BOT_TOKEN", "8140465766:AAFcZkbv2uii6m0LVudr55cRHb0eG13t870")
-# Fixed URL structure - Cleanly maps base string for endpoint concatenation
+RAW_TOKEN = os.getenv("BOT_TOKEN", "8140465766:AAFcZkbv2uii6m0LVudr55cRHb0eG13t870").strip()
+
+# SAFEGUARD: Strip away any accidental "bot" prefix if it exists in Render's env variables
+if RAW_TOKEN.lower().startswith("bot"):
+    TOKEN = RAW_TOKEN[3:]
+else:
+    TOKEN = RAW_TOKEN
+
+# Construct the perfectly unified base URL
 URL = f"https://api.telegram.org/bot{TOKEN}/"
 
 STATION_MAP = {
@@ -96,7 +103,7 @@ def telegram_webhook():
 
         message = update.get("message")
         if not message:
-            logger.debug("🔔 Received non-message type update (e.g. edited message or inline query). Ignored.")
+            logger.debug("🔔 Received non-message type update. Ignored.")
             return jsonify({"status": "ignored"}), 200
 
         chat_id = message["chat"]["id"]
@@ -121,8 +128,8 @@ def telegram_webhook():
         else:
             reply = get_weather_by_location(text)
 
-        # Send reply back via an explicit POST request with proper payload parameters
-        logger.debug(f"📤 Sending response back to chat {chat_id}...")
+        # Send reply back via a clean POST payload request
+        logger.debug(f"📤 Outbound reply endpoint target: {URL}sendMessage")
         payload = {
             "chat_id": chat_id,
             "text": reply
@@ -145,7 +152,7 @@ def set_telegram_webhook():
     render_url = "https://warangal-weatherman.onrender.com/webhook"
     logger.info("⚙️ Starting automatic webhook registration...")
     try:
-        logger.debug("Clearing previous hook/polling conflicts...")
+        logger.debug(f"Clearing conflicts at target: {URL}deleteWebhook")
         requests.get(f"{URL}deleteWebhook", timeout=10)
         
         logger.info(f"Registering new live destination: {render_url}")
