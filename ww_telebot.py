@@ -131,17 +131,28 @@ def telegram_webhook():
         logger.info(f"💬 Incoming message from {full_name} (@{username}) [Chat ID: {chat_id}]: '{text}'")
 
         # Command / Message Router Logic
-        if not text:
-            reply = "❌ Please send a valid text message containing a village or city name."
-        elif text.lower() in ["/start", "hello", "hi"]:
-            reply = "⛅ Welcome to Warangal Weatherman Bot! Send me any village or city name in Telangana to get an instant live weather forecast."
+        if not text and not message.get("location"):
+            reply = "❌ Please send a valid text message (village/city name) or share a map location."
+        elif text and text.lower() in ["/start", "hello", "hi"]:
+            reply = "⛅ Welcome to Warangal Weatherman Bot! Send me any village or city name in Telangana to get an instant live weather forecast. Or simply share your current location! 📍"
         else:
-            # Process geographical query strings
-            latitude, longitude, location = get_coordinates(text)
-            if latitude and longitude:
-                reply = get_weather(latitude, longitude, location)
+            # Check if user shared a map location
+            location_data = message.get("location")
+            if location_data:
+                latitude = location_data["latitude"]
+                longitude = location_data["longitude"]
+                display_name = f"Shared Location ({latitude:.4f}, {longitude:.4f})"
+                logger.info(f"📍 User shared location: {display_name}")
+                reply = get_weather(latitude, longitude, display_name)
+            elif text:
+                # Process geographical query strings (village/city names)
+                latitude, longitude, location = get_coordinates(text)
+                if latitude and longitude:
+                    reply = get_weather(latitude, longitude, location)
+                else:
+                    reply = f"❌ Could not find location matching: '{text}'. Please try another village/city name."
             else:
-                reply = f"❌ Could not find location matching: '{text}'. Please try another village/city name."
+                reply = "❌ Please send a valid text message or share a map location."
 
         # Send response back as a robust POST body
         logger.debug(f"📤 Outbound reply endpoint target: {URL}sendMessage")
