@@ -31,12 +31,24 @@ STATION_MAP = {
     # ... keep the rest of your station map entries here exactly as they are
 }
 
+from requests.adapters import HTTPAdapter
+from urllib3.util import Retry
+from requests.adapters import HTTPAdapter
+from urllib3.util import Retry
+
 def get_weather_data(station_id=10272):
-    """Fetch weather data from website using station ID"""
+    """Fetch weather data from website using station ID with automatic retries"""
     try:
         logger.debug(f"🌐 Fetching external weather data for Station ID: {station_id}...")
         weather_url = f'https://tgdps.telangana.gov.in/live.jsp?s1={station_id}'
-        response = requests.get(weather_url, timeout=10)
+        
+        # Configure automatic retries for flaky servers
+        session = requests.Session()
+        retries = Retry(total=3, backoff_factor=1, status_forcelist=[500, 502, 503, 504])
+        session.mount('https://', HTTPAdapter(max_retries=retries))
+        
+        # Increased timeout slightly to 15 seconds to give the slow server a bit more breathing room
+        response = session.get(weather_url, timeout=15)
         response.raise_for_status()
         
         soup = BeautifulSoup(response.content, 'html.parser')
@@ -57,7 +69,7 @@ def get_weather_data(station_id=10272):
         return f"Weather Update for {location}:\nTemperature: {temp}°C 🌤️"
     except Exception as e:
         logger.error(f"💥 Error pulling weather from external portal: {e}")
-        return f"Error fetching weather: {str(e)}"
+        return f"⚠️ The Telangana weather portal is responding slowly right now. Please try again in a moment!"
 
 def get_weather_by_location(location_name):
     """Fetch weather data by location name"""
