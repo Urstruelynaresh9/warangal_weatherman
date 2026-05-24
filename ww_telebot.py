@@ -6,14 +6,13 @@ from bs4 import BeautifulSoup
 from flask import Flask
 
 # 1. Telegram Bot Configuration
-# Note: It's best practice to add BOT_TOKEN in Render's "Environment Variables" settings tab.
 TOKEN = os.getenv("BOT_TOKEN", "8140465766:AAFcZkbv2uii6m0LVudr55cRHb0eG13t870")
 URL = f"https://api.telegram.org/bot{TOKEN}/"
 
 STATION_MAP = {
     "Moulali": 10001, "Sivaramapalle": 10002, "Medchal Industrial area sub-station": 10003,
     "Bornapalli": 10272, "Jagtial": 10303, "Guchibowli": 10308, "Begumpet (IMD Office)": 12007,
-    # ... Keep the rest of your station map entries here exactly as they were
+    # ... leave the rest of your station map entries here exactly as they are
 }
 
 def get_weather_data(station_id=10272):
@@ -98,7 +97,7 @@ def telegram_bot_loop():
                 if text_lower in ["w", "weather update"]:
                     reply = get_weather_data()
                 elif text_lower == "list":
-                    locations_list = "\n".join([f"• {loc}" for loc in sorted(STATION_MAP.keys())[:20]]) # truncated example list length
+                    locations_list = "\n".join([f"• {loc}" for loc in sorted(STATION_MAP.keys())[:20]])
                     reply = f"📍 Available Weather Stations:\n\n{locations_list}\n\nSend any location name to get current weather!"
                 else:
                     reply = get_weather_by_location(text)
