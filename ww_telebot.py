@@ -3,21 +3,27 @@ import requests
 import time
 from bs4 import BeautifulSoup
 
+import os
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
 
 chrome_options = Options()
 
-chrome_options.add_argument("--headless")
+# These flags are absolutely required for running headless Chrome in a Docker/Render cloud environment
+chrome_options.add_argument("--headless=new")
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
+chrome_options.add_argument("--disable-gpu")
 
-driver = webdriver.Chrome(
-    service=Service(ChromeDriverManager().install()),
-    options=chrome_options
-)
+# Check if running on Render, then point to the buildpack binaries
+if os.environ.get("RENDER"):
+    chrome_options.binary_location = "/app/.apt/usr/bin/google-chrome"
+    service = Service(executable_path="/app/.chromedriver/bin/chromedriver")
+    driver = webdriver.Chrome(service=service, options=chrome_options)
+else:
+    # Your local development setup (runs normally on your PC)
+    driver = webdriver.Chrome(options=chrome_options)
 
 TOKEN = os.getenv("BOT_TOKEN")
 
