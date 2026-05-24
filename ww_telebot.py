@@ -5,8 +5,11 @@ import requests
 from flask import Flask
 
 # 1. Telegram Bot Configuration
-TOKEN = os.getenv("BOT_TOKEN", "8140465766:AAFcZkbv2uii6m0LVudr55cRHb0eG13t870")
-URL = f"https://api.telegram.org/bot{TOKEN}/"
+TOKEN = os.getenv("BOT_TOKEN", "8140465766:AAFcZkbv2uii6m0LVudr55cRHb0eG13t870").strip()
+
+# Fixes the "botbot" URL issue dynamically
+CLEAN_TOKEN = TOKEN if TOKEN.startswith("bot") else f"bot{TOKEN}"
+URL = f"https://api.telegram.org/{CLEAN_TOKEN}/"
 
 def telegram_bot_loop():
     """Main long-polling loop tracking user messages with heavy debugging"""
@@ -19,7 +22,7 @@ def telegram_bot_loop():
             response = requests.get(
                 URL + "getUpdates",
                 params={
-                    "timeout": 30,  # Lowered timeout slightly for faster loop iterations during debugging
+                    "timeout": 30,
                     "offset": offset
                 },
                 timeout=35
@@ -84,7 +87,7 @@ def telegram_bot_loop():
         except Exception as e:
             print(f"⚠️ Loop error caught in try-except block: {e}")
             import traceback
-            traceback.print_exc()  # Prints the full stack trace to pinpoint the line failing
+            traceback.print_exc()
             time.sleep(5)
             
         time.sleep(1)
@@ -93,7 +96,6 @@ def telegram_bot_loop():
 # 2. Flask Web Infrastructure (Keeps Render web service alive)
 app = Flask(__name__)
 
-# Force Python's logging to print everything to the Render console immediately
 import sys
 import logging
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
@@ -113,4 +115,4 @@ if __name__ == "__main__":
     # Flask runs on the main thread and opens up the required port for Render
     port = int(os.environ.get("PORT", 10000))
     print(f"🚀 DEBUG: Launching Flask server on port {port}...")
-    app.run(host="0.0.0.0", port=port, debug=False) # Keep debug=False here so it doesn't duplicate threads
+    app.run(host="0.0.0.0", port=port, debug=False)
