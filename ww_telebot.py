@@ -10,7 +10,7 @@ URL = f"https://api.telegram.org/bot{TOKEN}/"
 STATION_MAP = {
     "Moulali": 10001, "Sivaramapalle": 10002, "Medchal Industrial area sub-station": 10003,
     "Bornapalli": 10272, "Jagtial": 10303, "Guchibowli": 10308, "Begumpet (IMD Office)": 12007,
-    # ... leave the rest of your station map entries here exactly as they are
+    # ... keep the rest of your station map entries here exactly as they are
 }
 
 def get_weather_data(station_id=10272):
@@ -84,7 +84,7 @@ def telegram_webhook():
         text = message.get("text", "").strip()
         text_lower = text.lower()
 
-        # Extract Detailed User Information
+        # Extract Comprehensive User Details from Telegram payload
         user_info = message.get("from", {})
         user_id = user_info.get("id", "N/A")
         username = user_info.get("username", "No Username")
@@ -92,13 +92,13 @@ def telegram_webhook():
         last_name = user_info.get("last_name", "")
         full_name = f"{first_name} {last_name}".strip()
 
-        # 📥 PRINT COMPREHENSIVE USER DETAILS TO LOGS
-        print("\n" + "="*50)
-        print(f"📥 NEW TELEGRAM MESSAGE RECEIVED:")
+        # 📥 PRINT USER DETAILS & MESSAGE TO TERMINAL LOGS
+        print("\n" + "="*60)
+        print("📥 NEW TELEGRAM MESSAGE DETECTED")
         print(f"👤 User: {full_name} (@{username})")
         print(f"🆔 User ID: {user_id} | Chat ID: {chat_id}")
         print(f"💬 Message Text: '{text}'")
-        print("="*50 + "\n")
+        print("="*60 + "\n")
 
         # Auto reply logic
         if text_lower in ["w", "weather update"]:
@@ -119,7 +119,7 @@ def telegram_webhook():
         )
 
     except Exception as e:
-        print(f"⚠️ Error handling webhook message: {e}")
+        print(f"⚠️ Error processing webhook update: {e}")
         
     return jsonify({"status": "success"}), 200
 
