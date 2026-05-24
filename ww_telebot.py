@@ -56,7 +56,7 @@ def telegram_bot_loop():
 
                 # Minimal Auto reply logic
                 if text_lower == "hi":
-                    reply = "Hello"
+                    reply = "Helloooo"
                     
                     # LOGS OUTGOING REPLY IN RENDER TERMINAL
                     print(f"📤 SENDING REPLY to (ID: {chat_id}): {reply}")
