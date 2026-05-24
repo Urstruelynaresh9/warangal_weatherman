@@ -3,6 +3,21 @@ import requests
 import time
 from bs4 import BeautifulSoup
 
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+
+chrome_options = Options()
+
+chrome_options.add_argument("--headless")
+chrome_options.add_argument("--no-sandbox")
+chrome_options.add_argument("--disable-dev-shm-usage")
+
+driver = webdriver.Chrome(
+    service=Service(ChromeDriverManager().install()),
+    options=chrome_options
+)
 # Replace with your NEW bot token
 TOKEN = "bot8140465766:AAFcZkbv2uii6m0LVudr55cRHb0eG13t870"
 
@@ -482,3 +497,20 @@ Send any location name to get current weather!"""
         )
 
     time.sleep(1)
+
+from flask import Flask
+import threading
+
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return "Warangal Weather Bot Running"
+
+def run_bot():
+    bot.infinity_polling()
+
+threading.Thread(target=run_bot).start()
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=10000)
