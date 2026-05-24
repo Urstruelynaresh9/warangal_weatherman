@@ -15,7 +15,8 @@ logger = logging.getLogger(__name__)
 
 # 1. Telegram Bot Configuration
 TOKEN = os.getenv("BOT_TOKEN", "8140465766:AAFcZkbv2uii6m0LVudr55cRHb0eG13t870")
-URL = f"https://api.telegram.org/{TOKEN}/"
+# Fixed URL structure - Cleanly maps base string for endpoint concatenation
+URL = f"https://api.telegram.org/bot{TOKEN}/"
 
 STATION_MAP = {
     "Moulali": 10001, "Sivaramapalle": 10002, "Medchal Industrial area sub-station": 10003,
@@ -126,7 +127,7 @@ def telegram_webhook():
             "chat_id": chat_id,
             "text": reply
         }
-        send_response = requests.post(URL + "sendMessage", json=payload, timeout=10)
+        send_response = requests.post(f"{URL}sendMessage", json=payload, timeout=10)
         
         if send_response.status_code == 200:
             logger.info(f"✅ Successfully replied to Chat ID {chat_id}")
