@@ -67,60 +67,64 @@ def telegram_bot_loop():
     offset = 0
     print("Telegram bot poller thread started...")
     
-    while True:
-        print("looooooop running........")
-        try:
-            response = requests.get(
-                URL + "getUpdates",
-                params={"timeout": 100, "offset": offset},
-                timeout=110
-            )
-            print(response)
+offset=0
+while True:
+    response = requests.get(
+        URL + "getUpdates",
+        params={
+            "timeout": 100,
+            "offset": offset
+        }
+    )
 
-            if response.status_code != 200:
-                time.sleep(5)
-                print("status_code != 200:")
-                continue
+    if response.status_code != 200:
+        print(f"API Error: {response.status_code}")
+        time.sleep(5)
+        continue
 
-            data = response.json()
-            if not data.get("ok", False) or "result" not in data:
-                time.sleep(5)
-                print("f not data.get(ok, False) or result not in data:")
-                continue
+    data = response.json()
+    
+    if not data.get("ok", False):
+        print(f"API Error: {data.get('description', 'Unknown error')}")
+        time.sleep(5)
+        continue
+    
+    if "result" not in data:
+        print("No 'result' in response")
+        time.sleep(5)
+        continue
 
-            for update in data["result"]:
-                offset = update["update_id"] + 1
-                message = update.get("message")
-                if not message:
-                    print("if not message:")
-                    continue
+    for update in data["result"]:
 
-                chat_id = message["chat"]["id"]
-                user = message.get("from", {}).get("username", "Unknown User")
-                text = message.get("text", "").strip()
-                text_lower = text.lower()
+        offset = update["update_id"] + 1
 
-                # LOG INCOMING REQUEST
-                print(f"📥 RECEIVED MESSAGE from @{user} (ID: {chat_id}): '{text}'")
+        message = update.get("message")
 
-                if text_lower in ["w", "weather update"]:
-                    reply = get_weather_data()
-                elif text_lower == "list":
-                    locations_list = "\n".join([f"• {loc}" for loc in sorted(STATION_MAP.keys())[:20]])
-                    reply = f"📍 Available Weather Stations:\n\n{locations_list}\n\nSend any location name to get current weather!"
-                else:
-                    reply = get_weather_by_location(text)
+        if not message:
+            continue
 
-                # LOG OUTGOING REPLY
-                print(f"📤 SENDING REPLY to (ID: {chat_id}): {reply.splitlines()[0]}")
+        chat_id = message["chat"]["id"]
+        text = message.get("text", "").strip()
+        text_lower = text.lower()
 
-                # Send response back to user
-                requests.get(URL + "sendMessage", params={"chat_id": chat_id, "text": reply})
-                print("Loop.............")
-        except Exception as e:
-            print(f"⚠️ Loop error: {e}")
-            time.sleep(5)
-        time.sleep(1)
+        # Auto reply logic
+        if text_lower == "w" or text_lower == "weather update":
+            print("Getting default weather data for Bornapalli")
+            reply = "Hiii"
+        else:
+            reply = "Hii"
+
+        # Send reply
+        requests.get(
+            URL + "sendMessage",
+            params={
+                "chat_id": chat_id,
+                "text": reply
+            }
+        )
+
+    time.sleep(1)
+
 
 # 2. Flask Web Infrastructure (Keeps Render web service alive)
 app = Flask(__name__)
