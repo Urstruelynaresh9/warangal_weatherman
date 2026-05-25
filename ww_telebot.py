@@ -126,13 +126,13 @@ def get_weather(latitude, longitude, location):
             if rain < 20:
                 rain_status = "☀️ No Rain"
             elif rain < 40:
-                rain_status = "🌤 Slight Chance"
+                rain_status = "🌤 Cloudy"
             elif rain < 60:
                 rain_status = "🌦 Possible Rain"
             elif rain < 80:
-                rain_status = "⛈️ Likely Rain"
+                rain_status = "⛈️ Moderate Rain"
             else:
-                rain_status = "🌧 Heavy Rain Expected"
+                rain_status = "🌧 Heavy Rain"
             
             forecast_lines.append(f"{forecast_time} - {temp}°C 🌡 - {rain_status}")
 
