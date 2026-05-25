@@ -121,7 +121,20 @@ def get_weather(latitude, longitude, location):
             forecast_time = datetime.fromisoformat(hourly_times[i]).strftime("%I:%M %p")
             temp = hourly_temps[i]
             rain = hourly_rain[i]
-            forecast_lines.append(f"{forecast_time} - {temp}°C 🌡 - Rain: {rain}% ⛈️")
+            
+            # Determine rain status based on probability
+            if rain < 20:
+                rain_status = "☀️ No Rain"
+            elif rain < 40:
+                rain_status = "🌤 Slight Chance"
+            elif rain < 60:
+                rain_status = "🌦 Possible Rain"
+            elif rain < 80:
+                rain_status = "⛈️ Likely Rain"
+            else:
+                rain_status = "🌧 Heavy Rain Expected"
+            
+            forecast_lines.append(f"{forecast_time} - {temp}°C 🌡 - {rain_status}")
 
         forecast_text = "\n".join(forecast_lines)
         logger.info(f"🌤 Weather forecast fetched successfully for {location}")
