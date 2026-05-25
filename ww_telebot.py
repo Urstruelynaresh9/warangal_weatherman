@@ -123,9 +123,9 @@ def get_weather(latitude, longitude, location):
             rain = hourly_rain[i]
             
             # Determine rain status based on probability
-            if rain < 40:
+            if rain < 30:
                 rain_status = "☀️ No Rain"
-            elif rain < 50:
+            elif rain < 40:
                 rain_status = "🌤 Cloudy"
             elif rain < 60:
                 rain_status = "🌦 Possible Rain"
@@ -149,9 +149,9 @@ Time:
 {formatted_time}
 Current Temp:  {current_temp}°C 🌡
 Wind Speed: {wind_speed} km/h 💨
-━━━━━━━━━━━━━━━━━━━━━━
-Next 6 Hours Forecast 📅
-━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━
+Next 6 Hours Forecast
+━━━━━━━━━━━━━━━━━━
 {forecast_text}"""
         return weather_text
 
