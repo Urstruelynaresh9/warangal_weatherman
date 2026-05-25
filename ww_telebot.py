@@ -129,25 +129,17 @@ def get_weather(latitude, longitude, location):
         weather_text = f"""============================
 WARANGAL WEATHERMAN BOT
 ============================
-
-📍 Weather for:
+Weather update for:
 {location}
-
 ━━━━━━━━━━━━━━━━━━━━━━
-⏰ Updated:
+Updated:
 {formatted_time}
-
-🌡 Current Temp:
-{current_temp}°C
-
-💨 Wind Speed:
-{wind_speed} km/h
+Current Temp:  {current_temp}°C 🌡
+Wind Speed: {wind_speed} km/h 💨
 ━━━━━━━━━━━━━━━━━━━━━━
-
-📅 Next 6 Hours Forecast
+Next 6 Hours Forecast 📅
 ━━━━━━━━━━━━━━━━━━━━━━
-{forecast_text}
-━━━━━━━━━━━━━━━━━━━━━━"""
+{forecast_text}"""
         return weather_text
 
     except Exception as e:
@@ -213,7 +205,8 @@ def telegram_webhook():
 
         # TRANSLATION LOGIC:
         # Translate the generated output to Telugu before pushing it out to Telegram
-        final_reply = translate_to_telugu(reply)
+        #final_reply = translate_to_telugu(reply)
+        final_reply=reply
 
         logger.debug(f"📤 Outbound reply endpoint target: {URL}sendMessage")
         payload = {
