@@ -14,7 +14,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # 1. Telegram Bot Configuration
-# SECURITY UPDATE: Token is now strictly fetched from environment variables.
 RAW_TOKEN = os.getenv("BOT_TOKEN")
 
 if not RAW_TOKEN:
@@ -23,13 +22,37 @@ if not RAW_TOKEN:
 
 RAW_TOKEN = RAW_TOKEN.strip()
 
-# SAFEGUARD: Strip away any accidental "bot" prefix from Render env variables
 if RAW_TOKEN.lower().startswith("bot"):
     TOKEN = RAW_TOKEN[3:]
 else:
     TOKEN = RAW_TOKEN
 
 URL = f"https://api.telegram.org/bot{TOKEN}/"
+
+
+def translate_to_telugu(text):
+    """Translates given English text to Telugu using a free translation API client"""
+    try:
+        logger.debug("🔤 Translating message payload to Telugu...")
+        # Using a reliable free translation endpoint
+        api_url = "https://translate.googleapis.com/translate_a/single"
+        params = {
+            "client": "gtx",
+            "sl": "en",
+            "tl": "te",
+            "dt": "t",
+            "q": text
+        }
+        response = requests.get(api_url, params=params, timeout=10)
+        response.raise_for_status()
+        
+        # Parse the nested list structure Google returns
+        translated_chunks = response.json()[0]
+        translated_text = "".join([chunk[0] for chunk in translated_chunks if chunk[0]])
+        return translated_text
+    except Exception as e:
+        logger.error(f"⚠️ Translation failed, falling back to original English text. Error: {e}")
+        return text
 
 
 def get_coordinates(village_name):
@@ -86,7 +109,6 @@ def get_weather(latitude, longitude, location):
         wind_speed = current["wind_speed_10m"]
         weather_time = current["time"]
 
-        # Convert time nicely (Handles local timezone formatting safely)
         formatted_time = datetime.fromisoformat(weather_time).strftime("%Y-%m-%d %I:%M %p IST")
 
         # Hourly forecast parsing
@@ -99,24 +121,30 @@ def get_weather(latitude, longitude, location):
             forecast_time = datetime.fromisoformat(hourly_times[i]).strftime("%I:%M %p")
             temp = hourly_temps[i]
             rain = hourly_rain[i]
-            forecast_lines.append(f"@{forecast_time} - {temp}°C | Rain chance : {rain}%")
+            forecast_lines.append(f"🕒 {forecast_time} → 🌡 {temp}°C | 🌧 Rain: {rain}%")
 
         forecast_text = "\n".join(forecast_lines)
         logger.info(f"🌤 Weather forecast fetched successfully for {location}")
 
         weather_text = f"""============================
-WARANGAL WEATHERMAN:
+WARANGAL WEATHERMAN BOT
 ============================
-Weather update for:
+
+📍 Weather for:
 {location}
+
 ━━━━━━━━━━━━━━━━━━━━━━
-Updated: {formatted_time}
-Current Temp:
-{current_temp}°C 🌡
-Wind Speed:
-{wind_speed} km/h 💨
+⏰ Updated:
+{formatted_time}
+
+🌡 Current Temp:
+{current_temp}°C
+
+💨 Wind Speed:
+{wind_speed} km/h
 ━━━━━━━━━━━━━━━━━━━━━━
-Next 6 Hours Forecast 📅
+
+📅 Next 6 Hours Forecast
 ━━━━━━━━━━━━━━━━━━━━━━
 {forecast_text}
 ━━━━━━━━━━━━━━━━━━━━━━"""
@@ -155,7 +183,6 @@ def telegram_webhook():
         chat_id = message["chat"]["id"]
         text = message.get("text", "").strip()
 
-        # Extract User Details
         user_info = message.get("from", {})
         username = user_info.get("username", "No Username")
         full_name = f"{user_info.get('first_name', 'User')} {user_info.get('last_name', '')}".strip()
@@ -168,7 +195,6 @@ def telegram_webhook():
         elif text and text.lower() in ["/start", "hello", "hi"]:
             reply = "⛅ Welcome to Warangal Weatherman Bot! Send me any village or city name in Telangana to get an instant live weather forecast. Or simply share your current location! 📍"
         else:
-            # Check if user shared a map location
             location_data = message.get("location")
             if location_data:
                 latitude = location_data["latitude"]
@@ -177,7 +203,6 @@ def telegram_webhook():
                 logger.info(f"📍 User shared location: {display_name}")
                 reply = get_weather(latitude, longitude, display_name)
             elif text:
-                # Process geographical query strings (village/city names)
                 latitude, longitude, location = get_coordinates(text)
                 if latitude and longitude:
                     reply = get_weather(latitude, longitude, location)
@@ -186,11 +211,14 @@ def telegram_webhook():
             else:
                 reply = "❌ Please send a valid text message or share a map location."
 
-        # Send response back as a robust POST body
+        # TRANSLATION LOGIC:
+        # Translate the generated output to Telugu before pushing it out to Telegram
+        final_reply = translate_to_telugu(reply)
+
         logger.debug(f"📤 Outbound reply endpoint target: {URL}sendMessage")
         payload = {
             "chat_id": chat_id,
-            "text": reply
+            "text": final_reply
         }
         send_response = requests.post(f"{URL}sendMessage", json=payload, timeout=10)
         
@@ -222,7 +250,6 @@ def set_telegram_webhook():
     except Exception as e:
         logger.critical(f"🚨 Network error establishing communication link: {e}")
 
-# Run registration right as the script is contextually loaded
 set_telegram_webhook()
 
 if __name__ == "__main__":
