@@ -14,7 +14,14 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # 1. Telegram Bot Configuration
-RAW_TOKEN = os.getenv("BOT_TOKEN", "8140465766:AAFcZkbv2uii6m0LVudr55cRHb0eG13t870").strip()
+# SECURITY UPDATE: Token is now strictly fetched from environment variables.
+RAW_TOKEN = os.getenv("BOT_TOKEN")
+
+if not RAW_TOKEN:
+    logger.critical("🚨 CRITICAL ERROR: 'BOT_TOKEN' environment variable is missing!")
+    sys.exit("Error: BOT_TOKEN environment variable not set.")
+
+RAW_TOKEN = RAW_TOKEN.strip()
 
 # SAFEGUARD: Strip away any accidental "bot" prefix from Render env variables
 if RAW_TOKEN.lower().startswith("bot"):
@@ -55,44 +62,75 @@ def get_coordinates(village_name):
 
 
 def get_weather(latitude, longitude, location):
-    """Fetch live weather data using Open-Meteo API"""
+    """Fetch current weather + next 6 hour forecast using Open-Meteo API"""
     try:
-        logger.debug(f"🌐 Requesting atmospheric data from Open-Meteo for ({latitude}, {longitude})...")
+        logger.debug(f"🌐 Requesting weather forecast from Open-Meteo for ({latitude}, {longitude})...")
         weather_url = "https://api.open-meteo.com/v1/forecast"
+
         params = {
             "latitude": latitude,
             "longitude": longitude,
-            "current_weather": True
+            "current": "temperature_2m,wind_speed_10m",
+            "hourly": "temperature_2m,precipitation_probability",
+            "forecast_hours": 6,
+            "timezone": "Asia/Kolkata"
         }
-        
+
         response = requests.get(weather_url, params=params, timeout=10)
+        response.raise_for_status()
         data = response.json()
-        
-        current = data["current_weather"]
-        temperature = current["temperature"]
-        windspeed = current["windspeed"]
+
+        # Current weather parsing
+        current = data["current"]
+        current_temp = current["temperature_2m"]
+        wind_speed = current["wind_speed_10m"]
         weather_time = current["time"]
-        
-        # Convert UTC time to IST (GMT+5:30)
-        utc_time = datetime.strptime(weather_time, "%Y-%m-%dT%H:%M")
-        ist_time = utc_time + timedelta(hours=5, minutes=30)
-        formatted_time = ist_time.strftime("%Y-%m-%d %I:%M %p IST")
-        
-        logger.info(f"🌡️ Weather fetched cleanly for {location}: {temperature}°C")
-        
+
+        # Convert time nicely (Handles local timezone formatting safely)
+        formatted_time = datetime.fromisoformat(weather_time).strftime("%Y-%m-%d %I:%M %p IST")
+
+        # Hourly forecast parsing
+        hourly_times = data["hourly"]["time"]
+        hourly_temps = data["hourly"]["temperature_2m"]
+        hourly_rain = data["hourly"]["precipitation_probability"]
+
+        forecast_lines = []
+        for i in range(len(hourly_times)):
+            forecast_time = datetime.fromisoformat(hourly_times[i]).strftime("%I:%M %p")
+            temp = hourly_temps[i]
+            rain = hourly_rain[i]
+            forecast_lines.append(f"🕒 {forecast_time} → 🌡 {temp}°C | 🌧 Rain: {rain}%")
+
+        forecast_text = "\n".join(forecast_lines)
+        logger.info(f"🌤 Weather forecast fetched successfully for {location}")
+
         weather_text = f"""============================
 WARANGAL WEATHERMAN BOT
 ============================
-Weather Update for {location}
+
+📍 Weather for:
+{location}
+
 ━━━━━━━━━━━━━━━━━━━━━━
-⏰ Time: {formatted_time}
-🌡️ Temperature: {temperature}°C
-💨 Wind Speed: {windspeed} km/h
+⏰ Updated:
+{formatted_time}
+
+🌡 Current Temp:
+{current_temp}°C
+
+💨 Wind Speed:
+{wind_speed} km/h
+━━━━━━━━━━━━━━━━━━━━━━
+
+📅 Next 6 Hours Forecast
+━━━━━━━━━━━━━━━━━━━━━━
+{forecast_text}
 ━━━━━━━━━━━━━━━━━━━━━━"""
         return weather_text
+
     except Exception as e:
-        logger.error(f"💥 Failed parsing forecast payload: {e}")
-        return f"⚠️ Error fetching weather data points: {str(e)}"
+        logger.error(f"💥 Failed fetching weather forecast: {e}", exc_info=True)
+        return f"⚠️ Error fetching weather data: {str(e)}"
 
 
 # 2. Flask Web Infrastructure
