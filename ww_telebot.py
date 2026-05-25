@@ -142,10 +142,10 @@ def get_weather(latitude, longitude, location):
         weather_text = f"""============================
 ⛈️ WARANGAL WEATHERMAN ⛈️
 ============================
-Weather update for:
+Village:
 {location}
 ━━━━━━━━━━━━━━━━━━━━━━
-Updated:
+Time:
 {formatted_time}
 Current Temp:  {current_temp}°C 🌡
 Wind Speed: {wind_speed} km/h 💨
