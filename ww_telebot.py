@@ -99,30 +99,24 @@ def get_weather(latitude, longitude, location):
             forecast_time = datetime.fromisoformat(hourly_times[i]).strftime("%I:%M %p")
             temp = hourly_temps[i]
             rain = hourly_rain[i]
-            forecast_lines.append(f"🕒 {forecast_time} → 🌡 {temp}°C | 🌧 Rain: {rain}%")
+            forecast_lines.append(f"@{forecast_time} - {temp}°C | Rain chance : {rain}%")
 
         forecast_text = "\n".join(forecast_lines)
         logger.info(f"🌤 Weather forecast fetched successfully for {location}")
 
         weather_text = f"""============================
-WARANGAL WEATHERMAN BOT
+WARANGAL WEATHERMAN:
 ============================
-
-📍 Weather for:
+Weather update for:
 {location}
-
 ━━━━━━━━━━━━━━━━━━━━━━
-⏰ Updated:
-{formatted_time}
-
-🌡 Current Temp:
-{current_temp}°C
-
-💨 Wind Speed:
-{wind_speed} km/h
+Updated: {formatted_time}
+Current Temp:
+{current_temp}°C 🌡
+Wind Speed:
+{wind_speed} km/h 💨
 ━━━━━━━━━━━━━━━━━━━━━━
-
-📅 Next 6 Hours Forecast
+Next 6 Hours Forecast 📅
 ━━━━━━━━━━━━━━━━━━━━━━
 {forecast_text}
 ━━━━━━━━━━━━━━━━━━━━━━"""
