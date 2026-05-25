@@ -124,24 +124,24 @@ def get_weather(latitude, longitude, location):
             
             # Determine rain status based on probability
             if rain < 20:
-                rain_status = "☀️ No Rain"
+                rain_status = "No Rain❌"
             elif rain < 40:
-                rain_status = "🌤 Cloudy"
+                rain_status = "Cloudy🌤"
             elif rain < 60:
-                rain_status = "🌦 Possible Rain"
+                rain_status = "Possible Rain🌦"
             elif rain < 80:
-                rain_status = "⛈️ Moderate Rain"
+                rain_status = "Moderate Rain⛈️"
             else:
-                rain_status = "🌧 Heavy Rain"
+                rain_status = "Heavy Rain🌧"
             
-            forecast_lines.append(f"{forecast_time} - {temp}°C 🌡 - {rain}% - {rain_status}")
+            forecast_lines.append(f"{forecast_time} - {temp}°C 🌡- {rain_status}")
 
         forecast_text = "\n".join(forecast_lines)
         logger.info(f"🌤 Weather forecast fetched successfully for {location}")
 
-        weather_text = f"""============================
+        weather_text = f"""=========================
 ⛈️ WARANGAL WEATHERMAN ⛈️
-============================
+=========================
 Village:
 {location}
 ━━━━━━━━━━━━━━━━━━━━━━
