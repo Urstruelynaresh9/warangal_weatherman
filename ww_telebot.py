@@ -121,7 +121,7 @@ def get_weather(latitude, longitude, location):
             forecast_time = datetime.fromisoformat(hourly_times[i]).strftime("%I:%M %p")
             temp = hourly_temps[i]
             rain = hourly_rain[i]
-            forecast_lines.append(f"🕒 {forecast_time} → 🌡 {temp}°C | 🌧 Rain: {rain}%")
+            forecast_lines.append(f"{forecast_time} - {temp}°C, Rain: {rain}% chances")
 
         forecast_text = "\n".join(forecast_lines)
         logger.info(f"🌤 Weather forecast fetched successfully for {location}")
