@@ -134,7 +134,7 @@ def get_weather(latitude, longitude, location):
             else:
                 rain_status = "🌧 Heavy Rain"
             
-            forecast_lines.append(f"{forecast_time} - {temp}°C 🌡 - {rain_status}")
+            forecast_lines.append(f"{forecast_time} - {temp}°C 🌡 - {rain}% - {rain_status}")
 
         forecast_text = "\n".join(forecast_lines)
         logger.info(f"🌤 Weather forecast fetched successfully for {location}")
