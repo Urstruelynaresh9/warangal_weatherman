@@ -95,7 +95,7 @@ def get_weather(latitude, longitude, location):
             "longitude": longitude,
             "current": "temperature_2m,wind_speed_10m",
             "hourly": "temperature_2m,precipitation_probability",
-            "forecast_hours": 6,
+            "forecast_hours": 12,
             "timezone": "Asia/Kolkata"
         }
 
