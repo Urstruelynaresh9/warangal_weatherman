@@ -117,7 +117,7 @@ def get_weather(latitude, longitude, location):
         hourly_rain = data["hourly"]["precipitation_probability"]
 
         forecast_lines = []
-        for i in range(len(hourly_times)):
+        for i+1 in range(len(hourly_times)):
             forecast_time = datetime.fromisoformat(hourly_times[i]).strftime("%I:%M %p")
             temp = hourly_temps[i]
             rain = hourly_rain[i]
