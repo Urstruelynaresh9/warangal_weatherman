@@ -95,7 +95,7 @@ def get_weather(latitude, longitude, location):
             "longitude": longitude,
             "current": "temperature_2m,wind_speed_10m",
             "hourly": "temperature_2m,precipitation_probability",
-            "forecast_hours": 6,
+            "forecast_hours": 12,
             "timezone": "Asia/Kolkata"
         }
 
@@ -127,12 +127,12 @@ def get_weather(latitude, longitude, location):
                 rain_status = "No Rain❌"
             elif rain < 40:
                 rain_status = "Cloudy weather🌤"
-            elif rain < 60:
+            elif rain < 50:
                 rain_status = "Possible Rain🌦"
-            elif rain < 80:
+            elif rain < 70:
                 rain_status = "Moderate Rain⛈️"
             else:
-                rain_status = "Heavy Rain🌧"
+                rain_status = "Moderate to Heavy Rain🌧"
             
             forecast_lines.append(f"{forecast_time} - {temp}°C 🌡- {rain_status}")
 
@@ -150,7 +150,7 @@ Time:
 Current Temp:  {current_temp}°C 🌡
 Wind Speed: {wind_speed} km/h 💨
 ━━━━━━━━━━━━━━━━━━
-Next 6 Hours Forecast
+Next 12 Hours Forecast
 ━━━━━━━━━━━━━━━━━━
 {forecast_text}"""
         return weather_text
