@@ -170,9 +170,9 @@ def get_weather(latitude, longitude, location):
 🕒 Time: {formatted_time}
 🌡 Current Temp: {current_temp}°C
 💨 Wind Speed: {wind_speed} km/h
-____________________________
+================================
 ⏳ Next 12 Hours Forecast
-____________________________
+================================
 {forecast_text}
 """
 
