@@ -165,7 +165,6 @@ def get_weather(latitude, longitude, location):
 ===========================
 ⛈️ WARANGAL WEATHERMAN ⛈️
 ===========================
-
 📍Village/City:{location}
 ━━━━━━━━━━━━━━━━━━━━━━
 🕒 Time: {formatted_time}
