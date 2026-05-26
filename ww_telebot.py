@@ -85,9 +85,10 @@ def get_coordinates(village_name):
 
 
 def get_weather(latitude, longitude, location):
-    """Fetch current weather + next 6 hour forecast using Open-Meteo API"""
+    """Fetch current weather + next 12 hour forecast using Open-Meteo API"""
     try:
         logger.debug(f"🌐 Requesting weather forecast from Open-Meteo for ({latitude}, {longitude})...")
+        
         weather_url = "https://api.open-meteo.com/v1/forecast"
 
         params = {
@@ -95,34 +96,47 @@ def get_weather(latitude, longitude, location):
             "longitude": longitude,
             "current": "temperature_2m,wind_speed_10m",
             "hourly": "temperature_2m,precipitation_probability",
-            "forecast_hours": 12,
+            "forecast_days": 2,
             "timezone": "Asia/Kolkata"
         }
 
         response = requests.get(weather_url, params=params, timeout=10)
         response.raise_for_status()
+
         data = response.json()
 
-        # Current weather parsing
+        # ---------------- CURRENT WEATHER ----------------
         current = data["current"]
+
         current_temp = current["temperature_2m"]
         wind_speed = current["wind_speed_10m"]
         weather_time = current["time"]
 
-        formatted_time = datetime.fromisoformat(weather_time).strftime("%Y-%m-%d %I:%M %p IST")
+        current_dt = datetime.fromisoformat(weather_time)
 
-        # Hourly forecast parsing
+        formatted_time = current_dt.strftime("%Y-%m-%d %I:%M %p IST")
+
+        # ---------------- HOURLY FORECAST ----------------
         hourly_times = data["hourly"]["time"]
         hourly_temps = data["hourly"]["temperature_2m"]
         hourly_rain = data["hourly"]["precipitation_probability"]
 
         forecast_lines = []
-        for i+1 in range(len(hourly_times)):
-            forecast_time = datetime.fromisoformat(hourly_times[i]).strftime("%I:%M %p")
+
+        for i in range(len(hourly_times)):
+
+            forecast_dt = datetime.fromisoformat(hourly_times[i])
+
+            # Skip current/past hours
+            if forecast_dt <= current_dt:
+                continue
+
+            forecast_time = forecast_dt.strftime("%I:%M %p")
+
             temp = hourly_temps[i]
             rain = hourly_rain[i]
-            
-            # Determine rain status based on probability
+
+            # Rain status logic
             if rain < 20:
                 rain_status = "No Rain❌"
             elif rain < 40:
@@ -133,27 +147,47 @@ def get_weather(latitude, longitude, location):
                 rain_status = "Moderate Rain⛈️"
             else:
                 rain_status = "Moderate to Heavy Rain🌧"
-            
-            forecast_lines.append(f"{forecast_time}: {temp}°C - {rain_status}")
+
+            forecast_lines.append(
+                f"{forecast_time} - {temp}°C 🌡 - {rain_status}"
+            )
+
+            # Limit to next 12 future hours
+            if len(forecast_lines) >= 12:
+                break
 
         forecast_text = "\n".join(forecast_lines)
+
         logger.info(f"🌤 Weather forecast fetched successfully for {location}")
 
-        weather_text = f"""=========================
+        # ---------------- FINAL MESSAGE ----------------
+        weather_text = f"""
+=========================
 ⛈️ WARANGAL WEATHERMAN ⛈️
 =========================
-Village:
+
+📍 Village/City:
 {location}
+
 ━━━━━━━━━━━━━━━━━━━━━━
-Time:
+
+🕒 Time:
 {formatted_time}
-Current Temp:  {current_temp}°C 🌡
-Wind Speed: {wind_speed} km/h 💨
+
+🌡 Current Temp:
+{current_temp}°C
+
+💨 Wind Speed:
+{wind_speed} km/h
+
 ━━━━━━━━━━━━━━━━━━
-Next 12 Hours Forecast
+⏳ Next 12 Hours Forecast
 ━━━━━━━━━━━━━━━━━━
-{forecast_text}"""
-        return weather_text
+
+{forecast_text}
+"""
+
+        return weather_text.strip()
 
     except Exception as e:
         logger.error(f"💥 Failed fetching weather forecast: {e}", exc_info=True)
