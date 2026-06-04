@@ -241,8 +241,8 @@ def telegram_webhook():
 
         # TRANSLATION LOGIC:
         # Translate the generated output to Telugu before pushing it out to Telegram
-        #final_reply = translate_to_telugu(reply)
-        final_reply=reply
+        final_reply = translate_to_telugu(reply)
+        #final_reply=reply
 
         logger.debug(f"📤 Outbound reply endpoint target: {URL}sendMessage")
         payload = {
