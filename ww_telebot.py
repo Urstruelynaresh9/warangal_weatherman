@@ -83,7 +83,8 @@ def get_coordinates(village_name):
         logger.error(f"⚠️ Error getting coordinates from OSM: {e}")
         return None, None, None
 
-def get_weather(latitude, longitude, location):
+#========= Get Weather ========
+def get_weather_back(latitude, longitude, location):
     try:
 
         weather_url = "https://api.open-meteo.com/v1/forecast"
@@ -224,7 +225,7 @@ def get_weather(latitude, longitude, location):
         return f"⚠️ Error fetching weather data: {str(e)}"
 
 
-def get_weather_back(latitude, longitude, location):
+def get_weather(latitude, longitude, location):
     """Fetch current weather + next 12 hour forecast using Open-Meteo API"""
     try:
         logger.debug(f"🌐 Requesting weather forecast from Open-Meteo for ({latitude}, {longitude})...")
