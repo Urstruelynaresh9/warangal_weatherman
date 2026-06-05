@@ -244,7 +244,7 @@ def telegram_webhook():
         final_reply = translate_to_telugu(reply)
         #final_reply=reply
 
-        logger.debug(f"📤 Outbound reply endpoint target: {URL}sendMessage")
+        #logger.debug(f"📤 Outbound reply endpoint target: {URL}sendMessage")
         payload = {
             "chat_id": chat_id,
             "text": final_reply
