@@ -224,7 +224,7 @@ def get_weather_back(latitude, longitude, location):
 
         return f"⚠️ Error fetching weather data: {str(e)}"
 
-
+#========= Get Weather ========
 def get_weather(latitude, longitude, location):
     """Fetch current weather + next 12 hour forecast using Open-Meteo API"""
     try:
@@ -285,9 +285,9 @@ def get_weather(latitude, longitude, location):
             elif rain < 50:
                 rain_status = "Lite Rain🌦"
             elif rain < 70:
-                rain_status = "Moderate Rain⛈️"
+                rain_status = "Moderate Rain⛈️⚠️"
             else:
-                rain_status = "Moderate to Heavy Rain🌧"
+                rain_status = "Moderate to Heavy Rain🌧⚠️⚠️⚠️"
 
             forecast_lines.append(
                 f"{forecast_time}: {temp}°C - {rain_status}"
