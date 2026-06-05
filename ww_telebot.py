@@ -137,9 +137,9 @@ def get_weather(latitude, longitude, location):
             rain = hourly_rain[i]
 
             # Rain status logic
-            if rain < 20:
+            if rain < 10:
                 rain_status = "No Rain❌"
-            elif rain < 40:
+            elif rain < 30:
                 rain_status = "Cloudy weather🌤"
             elif rain < 50:
                 rain_status = "Lite Rain🌦"
