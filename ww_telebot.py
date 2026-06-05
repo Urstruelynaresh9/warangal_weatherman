@@ -83,8 +83,148 @@ def get_coordinates(village_name):
         logger.error(f"⚠️ Error getting coordinates from OSM: {e}")
         return None, None, None
 
-
 def get_weather(latitude, longitude, location):
+    try:
+
+        weather_url = "https://api.open-meteo.com/v1/forecast"
+
+        params = {
+            "latitude": latitude,
+            "longitude": longitude,
+
+            # Force ECMWF model
+            "models": "ecmwf_ifs025",
+
+            "current": "temperature_2m,wind_speed_10m",
+
+            "hourly": (
+                "temperature_2m,"
+                "precipitation_probability,"
+                "precipitation,"
+                "cloud_cover"
+            ),
+
+            "forecast_days": 2,
+            "timezone": "Asia/Kolkata"
+        }
+
+        response = requests.get(
+            weather_url,
+            params=params,
+            timeout=10
+        )
+
+        response.raise_for_status()
+
+        data = response.json()
+
+        # -------------------------
+        # Current Weather
+        # -------------------------
+
+        current = data["current"]
+
+        current_temp = current["temperature_2m"]
+        wind_speed = current["wind_speed_10m"]
+
+        weather_time = current["time"]
+
+        current_dt = datetime.fromisoformat(weather_time)
+
+        formatted_time = current_dt.strftime(
+            "%Y-%m-%d %I:%M %p IST"
+        )
+
+        # -------------------------
+        # Hourly Forecast
+        # -------------------------
+
+        hourly_times = data["hourly"]["time"]
+        hourly_temps = data["hourly"]["temperature_2m"]
+
+        hourly_rain_prob = data["hourly"]["precipitation_probability"]
+
+        hourly_rain_mm = data["hourly"]["precipitation"]
+
+        hourly_cloud = data["hourly"]["cloud_cover"]
+
+        forecast_lines = []
+
+        for i in range(len(hourly_times)):
+
+            forecast_dt = datetime.fromisoformat(
+                hourly_times[i]
+            )
+
+            if forecast_dt <= current_dt:
+                continue
+
+            forecast_time = forecast_dt.strftime(
+                "%I:%M %p"
+            )
+
+            temp = hourly_temps[i]
+
+            rain_prob = hourly_rain_prob[i]
+
+            rain_mm = hourly_rain_mm[i]
+
+            cloud = hourly_cloud[i]
+
+            # Better rain logic
+            if rain_mm >= 10:
+                rain_status = "Heavy Rain 🌧"
+            elif rain_mm >= 5:
+                rain_status = "Moderate Rain ⛈️"
+            elif rain_mm >= 1:
+                rain_status = "Light Rain 🌦"
+            elif rain_prob >= 60:
+                rain_status = "Rain Possible ☁️"
+            elif cloud >= 70:
+                rain_status = "Cloudy 🌥"
+            else:
+                rain_status = "Dry ☀️"
+
+            forecast_lines.append(
+                f"{forecast_time}: "
+                f"{temp}°C | "
+                f"{rain_mm} mm | "
+                f"{rain_status}"
+            )
+
+            if len(forecast_lines) >= 12:
+                break
+
+        forecast_text = "\n".join(forecast_lines)
+
+        weather_report = f"""
+===========================
+⛈️ WARANGAL WEATHERMAN ⛈️
+===========================
+📍Village/City: {location}
+━━━━━━━━━━━━━━━━━━━━━━
+🕒 Time: {formatted_time}
+🌡 Current Temp: {current_temp}°C
+💨 Wind Speed: {wind_speed} km/h
+🌍 Model: ECMWF IFS
+===========================
+⏳ Next 12 Hours Forecast
+===========================
+{forecast_text}
+"""
+
+        return weather_report.strip()
+
+    except Exception as e:
+        logger.error(
+            f"💥 ECMWF fetch failed: {e}",
+            exc_info=True
+        )
+
+        return f"⚠️ Error fetching weather data: {str(e)}"
+
+
+def get_weather_back(latitude, longitude, location):
     """Fetch current weather + next 12 hour forecast using Open-Meteo API"""
     try:
         logger.debug(f"🌐 Requesting weather forecast from Open-Meteo for ({latitude}, {longitude})...")
