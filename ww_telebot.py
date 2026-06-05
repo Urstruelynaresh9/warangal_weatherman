@@ -149,7 +149,7 @@ def get_weather(latitude, longitude, location):
                 rain_status = "Moderate to Heavy Rain🌧"
 
             forecast_lines.append(
-                f"{forecast_time}: {temp}°C - {rain_status}-{rain}%"
+                f"{forecast_time}: {temp}°C - {rain_status}"
             )
 
             # Limit to next 12 future hours
