@@ -77,7 +77,7 @@ def get_coordinates(village_name):
         longitude = float(place["lon"])
         display_name = place["display_name"]
         
-        logger.info(f"📍 Location resolved: {display_name} -> ({latitude}, {longitude})")
+        #logger.info(f"📍 Location resolved: {display_name} -> ({latitude}, {longitude})")
         return latitude, longitude, display_name
     except Exception as e:
         logger.error(f"⚠️ Error getting coordinates from OSM: {e}")
@@ -282,7 +282,7 @@ def get_weather(latitude, longitude, location):
                 rain_status = "No Rain❌"
             elif rain < 30:
                 rain_status = "Cloudy weather🌤"
-            elif rain < 50:
+            elif rain < 40:
                 rain_status = "Lite Rain🌦"
             elif rain < 70:
                 rain_status = "Moderate Rain⛈️⚠️"
@@ -356,7 +356,7 @@ def telegram_webhook():
         username = user_info.get("username", "No Username")
         full_name = f"{user_info.get('first_name', 'User')} {user_info.get('last_name', '')}".strip()
 
-        logger.info(f"💬 Incoming message from {full_name} (@{username}) [Chat ID: {chat_id}]: '{text}'")
+        logger.info(f"💬 Incoming message from {full_name} (@{username}) '{text}'")
 
         # Command / Message Router Logic
         if not text and not message.get("location"):
@@ -393,7 +393,7 @@ def telegram_webhook():
         send_response = requests.post(f"{URL}sendMessage", json=payload, timeout=10)
         
         if send_response.status_code == 200:
-            logger.info(f"✅ Successfully replied to Chat ID {chat_id}")
+            logger.info(f"✅ Successfully replied to {full_name} (@{username}")
         else:
             logger.error(f"❌ Telegram API rejected message delivery: {send_response.status_code} - {send_response.text}")
 
