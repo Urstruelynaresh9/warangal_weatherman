@@ -59,7 +59,7 @@ def get_coordinates(village_name):
     """Get coordinates using OpenStreetMap Nominatim API"""
     try:
         search_query = f"{village_name}, Telangana, India"
-        logger.debug(f"🔍 Contacting OpenStreetMap for location query: '{search_query}'")
+       #logger.debug(f"🔍 Contacting OpenStreetMap for location query: '{search_query}'")
         
         url = "https://nominatim.openstreetmap.org/search"
         params = {"q": search_query, "format": "json", "limit": 1}
@@ -228,7 +228,7 @@ def get_weather_back(latitude, longitude, location):
 def get_weather(latitude, longitude, location):
     """Fetch current weather + next 12 hour forecast using Open-Meteo API"""
     try:
-        logger.debug(f"🌐 Requesting weather forecast from Open-Meteo for ({latitude}, {longitude})...")
+        #logger.debug(f"🌐 Requesting weather forecast from Open-Meteo for ({latitude}, {longitude})...")
         
         weather_url = "https://api.open-meteo.com/v1/forecast"
 
@@ -329,20 +329,20 @@ app = Flask(__name__)
 
 @app.route("/")
 def home():
-    logger.debug("❤️ Health check ping received on root '/'")
+    logger.debug("❤️ Health check ping received...")
     return "Warangal Weather Bot is Running via Webhook!", 200
 
 @app.route("/webhook", methods=["POST"])
 def telegram_webhook():
     """Listens for updates pushed directly by Telegram"""
-    logger.debug("📥 Received a POST request on /webhook")
+    #logger.debug("📥 Received a POST request on /webhook")
     try:
         update = request.get_json()
         if not update:
             logger.warning("⚠️ Received an empty webhook payload.")
             return "No data received", 400
 
-        logger.debug(f"📦 Raw JSON Payload: {update}")
+        #logger.debug(f"📦 Raw JSON Payload: {update}")
 
         message = update.get("message")
         if not message:
