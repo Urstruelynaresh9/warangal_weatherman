@@ -356,7 +356,7 @@ def telegram_webhook():
         username = user_info.get("username", "No Username")
         full_name = f"{user_info.get('first_name', 'User')} {user_info.get('last_name', '')}".strip()
 
-        logger.info(f"💬 Incoming message from {full_name} (@{username}) '{text}'")
+        logger.info(f"💬 Incoming message from {full_name} (@{username}) for '{text}'")
 
         # Command / Message Router Logic
         if not text and not message.get("location"):
@@ -393,7 +393,7 @@ def telegram_webhook():
         send_response = requests.post(f"{URL}sendMessage", json=payload, timeout=10)
         
         if send_response.status_code == 200:
-            logger.info(f"✅ Successfully replied to {full_name} (@{username}")
+            logger.info(f"✅ Successfully replied to {full_name} (@{username})")
         else:
             logger.error(f"❌ Telegram API rejected message delivery: {send_response.status_code} - {send_response.text}")
 
@@ -406,12 +406,12 @@ def telegram_webhook():
 # --- AUTOMATIC WEBHOOK SETUP ON STARTUP ---
 def set_telegram_webhook():
     render_url = "https://warangal-weatherman.onrender.com/webhook"
-    logger.info("⚙️ Starting automatic webhook registration...")
+    #logger.info("⚙️ Starting automatic webhook registration...")
     try:
-        logger.debug(f"Clearing conflicts at target: {URL}deleteWebhook")
+        #logger.debug(f"Clearing conflicts at target: {URL}deleteWebhook")
         requests.get(f"{URL}deleteWebhook", timeout=10)
         
-        logger.info(f"Registering new live destination: {render_url}")
+        #logger.info(f"Registering new live destination: {render_url}")
         res = requests.post(f"{URL}setWebhook", json={"url": render_url}, timeout=10)
         if res.status_code == 200:
             logger.info(f"🎉 Webhook locked into Telegram: {render_url}")
